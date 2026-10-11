@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}AptiRise — Master Aptitude One Level at a Time{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 3rem 0 4rem;">
+  <!-- Hero Section -->
+  <div class="badge badge-blue" style="margin-bottom: 1.25rem;">Next-Gen Aptitude Game</div>
+  <h1 style="font-size: 3.5rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1.08; margin-bottom: 1.25rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+    Master Aptitude.<br><span style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">One Level at a Time.</span>
+  </h1>
+  <p style="font-size: 1.25rem; color: var(--text-secondary); max-width: 620px; margin: 0 auto 2.5rem; font-weight: 400; line-height: 1.5;">
+    Practice smarter. Build your speed. Level up your mathematical and logical skills with an addictive progression engine.
+  </p>
+
+  <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 4rem;">
+    <a href="/register" class="btn btn-primary" style="padding: 0.85rem 2rem; font-size: 1.05rem;" id="heroStartBtn">Start Practicing Free →</a>
+    <a href="/login" class="btn btn-secondary" style="padding: 0.85rem 1.8rem; font-size: 1.05rem;" id="heroSignInBtn">Sign In</a>
+  </div>
+
+  <!-- Interactive Game Preview Card Mockup -->
+  <div style="max-width: 620px; margin: 0 auto 5rem; text-align: left;">
+    <div class="card" style="box-shadow: var(--shadow-lg); border-color: rgba(0, 113, 227, 0.25);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span class="badge badge-blue">Percentage • Level 2 Easy</span>
+        <span class="timer-pill">⏱ 00:24</span>
+      </div>
+      <div class="progress-bar-container" style="margin-bottom: 1.25rem;">
+        <div class="progress-bar-fill" style="width: 70%;"></div>
+      </div>
+      <div style="font-size: 0.82rem; color: var(--text-tertiary); font-weight: 600; margin-bottom: 0.5rem;">Question 7 of 10</div>
+      <h3 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 1.25rem;">
+        A shop gives a 20% discount on an article marked at ₹500. What is the selling price?
+      </h3>
+      <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+        <div class="option-btn" style="pointer-events: none;">
+          <span class="option-letter">A</span>
+          <span>₹380</span>
+        </div>
+        <div class="option-btn selected correct" style="pointer-events: none;">
+          <span class="option-letter">B</span>
+          <span>₹400</span>
+          <span class="badge badge-emerald" style="margin-left: auto;">+150 XP</span>
+        </div>
+        <div class="option-btn" style="pointer-events: none;">
+          <span class="option-letter">C</span>
+          <span>₹420</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works Section -->
+  <div class="section-header" style="margin-top: 3rem;">
+    <h2 class="section-title">How It Works</h2>
+    <p class="section-subtitle">A progression system built for peak aptitude retention</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 5rem; text-align: center;">
+    <div class="card">
+      <div style="font-size: 2rem; margin-bottom: 0.75rem;">🎯</div>
+      <h4 style="font-weight: 700; margin-bottom: 0.35rem;">1. Choose Topic</h4>
+      <p style="font-size: 0.88rem; color: var(--text-secondary);">Select from 20+ comprehensive aptitude collections.</p>
+    </div>
+    <div class="card">
+      <div style="font-size: 2rem; margin-bottom: 0.75rem;">⚡</div>
+      <h4 style="font-weight: 700; margin-bottom: 0.35rem;">2. Play Levels</h4>
+      <p style="font-size: 0.88rem; color: var(--text-secondary);">Start at Beginner and unlock Level 5 Expert as you master skills.</p>
+    </div>
+    <div class="card">
+      <div style="font-size: 2rem; margin-bottom: 0.75rem;">💎</div>
+      <h4 style="font-weight: 700; margin-bottom: 0.35rem;">3. Earn XP & Streaks</h4>
+      <p style="font-size: 0.88rem; color: var(--text-secondary);">Gain speed bonuses, daily streak multipliers, and achievements.</p>
+    </div>
+    <div class="card">
+      <div style="font-size: 2rem; margin-bottom: 0.75rem;">🏆</div>
+      <h4 style="font-weight: 700; margin-bottom: 0.35rem;">4. Level Up</h4>
+      <p style="font-size: 0.88rem; color: var(--text-secondary);">Rise through global levels and crush campus & competitive exams.</p>
+    </div>
+  </div>
+
+  <!-- Featured Collections -->
+  <div class="section-header" style="text-align: left;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+      <div>
+        <h2 class="section-title">Featured Topics</h2>
+        <p class="section-subtitle">Structured from fundamental concepts to speed-solving shortcuts</p>
+      </div>
+      <a href="/login" class="btn btn-secondary">Explore All Topics →</a>
+    </div>
+  </div>
+
+  <div class="collections-grid" style="text-align: left; margin-bottom: 5rem;">
+    {% for col in featured_collections %}
+    <a href="/login" class="card card-hover collection-card">
+      <div class="collection-card-header">
+        <div class="collection-icon">
+          {% if col.icon == 'percent' %}%
+          {% elif col.icon == 'trending-up' %}📈
+          {% elif col.icon == 'clock' %}⏱
+          {% elif col.icon == 'navigation' %}🚀
+          {% else %}#
+          {% endif %}
+        </div>
+        <span class="badge badge-blue">5 Levels</span>
+      </div>
+      <div>
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.4rem;">{{ col.name }}</h3>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 1.25rem;">
+          {{ col.description }}
+        </p>
+      </div>
+      <div>
+        <span style="font-size: 0.82rem; font-weight: 600; color: var(--accent-blue);">Start at Level 1 Beginner →</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Call To Action -->
+  <div class="card" style="background: linear-gradient(135deg, var(--surface-card), var(--surface-elevated)); border: 1px solid var(--border-subtle); padding: 3.5rem 2rem; border-radius: var(--radius-lg); text-align: center;">
+    <h2 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.75rem;">
+      Ready to Level Up Your Aptitude?
+    </h2>
+    <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 2rem; font-size: 1.05rem;">
+      Join thousands of students and aspirants preparing for campus placements, CAT, GATE, and competitive tests.
+    </p>
+    <a href="/register" class="btn btn-primary" style="padding: 0.85rem 2.2rem; font-size: 1rem;">Create Free Account</a>
+  </div>
+</div>
+{% endblock %}

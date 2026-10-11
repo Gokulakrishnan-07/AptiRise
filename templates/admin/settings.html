@@ -1,0 +1,131 @@
+{% extends "admin/base.html" %}
+
+{% block title %}System Settings — AptiRise Admin{% endblock %}
+
+{% block content %}
+<div style="max-width: 780px; margin: 0 auto;">
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.25rem;">
+      Game Engine Settings
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 0.95rem;">
+      Configure global gamification parameters, timers, bonus XP rules, and AI pipelines.
+    </p>
+  </div>
+
+  <!-- AI & Hugging Face Status Banner -->
+  <div class="card" style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; border-color: {% if hf_configured %}rgba(52, 199, 89, 0.3){% else %}rgba(0, 113, 227, 0.3){% endif %};">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: {% if hf_configured %}var(--accent-emerald-light){% else %}var(--accent-blue-light){% endif %}; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+        🤖
+      </div>
+      <div>
+        <div style="font-weight: 700; font-size: 1.05rem;">
+          Hugging Face AI Status: {% if hf_configured %}<span style="color: var(--accent-emerald);">Online & Active (HF_TOKEN detected)</span>{% else %}<span style="color: var(--accent-blue);">Smart Local Heuristic Fallback Active</span>{% endif %}
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+          {% if hf_configured %}
+            Zero-shot classification and question normalization using Hugging Face Inference API.
+          {% else %}
+            Local keyword analysis and semantic heuristics provide 100% offline uptime even without an internet token.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Configuration Form -->
+  <div class="card">
+    <form id="adminSettingsForm">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Default Question Timer (seconds)</label>
+          <input type="number" id="setting_timer" class="form-input" value="{{ settings.get('default_timer_seconds', '45') }}" min="15" max="180">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Base XP per Correct Answer</label>
+          <input type="number" id="setting_base_xp" class="form-input" value="{{ settings.get('base_correct_xp', '100') }}" min="10" max="500">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Speed Bonus (&lt;50% Time Taken)</label>
+          <input type="number" id="setting_speed_50" class="form-input" value="{{ settings.get('speed_bonus_under_50', '50') }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Speed Bonus (&lt;25% Time Taken)</label>
+          <input type="number" id="setting_speed_25" class="form-input" value="{{ settings.get('speed_bonus_under_25', '100') }}">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Perfect Level Bonus XP</label>
+          <input type="number" id="setting_perfect_xp" class="form-input" value="{{ settings.get('perfect_level_bonus_xp', '250') }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Daily Challenge Bonus XP</label>
+          <input type="number" id="setting_daily_xp" class="form-input" value="{{ settings.get('daily_challenge_bonus_xp', '500') }}">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">AI Confidence Threshold (0.50 - 0.99)</label>
+          <input type="text" id="setting_ai_thresh" class="form-input" value="{{ settings.get('ai_confidence_threshold', '0.80') }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Global Sound Effects</label>
+          <select id="setting_sound" class="form-select">
+            <option value="true" {% if settings.get('sound_effects_enabled', 'true') == 'true' %}selected{% endif %}>Enabled Globally</option>
+            <option value="false" {% if settings.get('sound_effects_enabled', 'true') == 'false' %}selected{% endif %}>Disabled</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+        Update Game Settings
+      </button>
+
+      <span id="settingsSaveToast" style="margin-left: 1rem; color: var(--accent-emerald); font-weight: 600; font-size: 0.9rem; display: none;">
+        ✓ Settings saved successfully!
+      </span>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById("adminSettingsForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const updates = [
+      { key: "default_timer_seconds", value: document.getElementById("setting_timer").value },
+      { key: "base_correct_xp", value: document.getElementById("setting_base_xp").value },
+      { key: "speed_bonus_under_50", value: document.getElementById("setting_speed_50").value },
+      { key: "speed_bonus_under_25", value: document.getElementById("setting_speed_25").value },
+      { key: "perfect_level_bonus_xp", value: document.getElementById("setting_perfect_xp").value },
+      { key: "daily_challenge_bonus_xp", value: document.getElementById("setting_daily_xp").value },
+      { key: "ai_confidence_threshold", value: document.getElementById("setting_ai_thresh").value },
+      { key: "sound_effects_enabled", value: document.getElementById("setting_sound").value }
+    ];
+
+    for (const item of updates) {
+      await fetch("/admin/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item)
+      });
+    }
+
+    const toast = document.getElementById("settingsSaveToast");
+    toast.style.display = "inline";
+    setTimeout(() => toast.style.display = "none", 3000);
+  });
+</script>
+{% endblock %}

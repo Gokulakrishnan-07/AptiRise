@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Daily Aptitude Blitz — AptiRise{% endblock %}
+
+{% block content %}
+<div class="game-container">
+  {% if is_completed %}
+    <!-- Challenge Already Finished Today -->
+    <div class="card" style="text-align: center; padding: 3.5rem 2rem;">
+      <div style="font-size: 3.5rem; margin-bottom: 0.75rem;">⚡</div>
+      <div class="badge badge-emerald" style="margin-bottom: 1rem;">Daily Blitz Complete</div>
+      <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.75rem;">
+        You've Crushed Today's Blitz!
+      </h1>
+      <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 2rem; font-size: 1.05rem;">
+        Awesome discipline. Your daily streak is safe and bonus XP is claimed. Come back tomorrow for 5 new rapid questions.
+      </p>
+
+      <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2.5rem;">
+        <div>
+          <div style="font-size: 1.8rem; font-weight: 800; color: var(--accent-amber);">🔥 {{ user.current_streak }}</div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Day Streak</div>
+        </div>
+        <div>
+          <div style="font-size: 1.8rem; font-weight: 800; color: var(--accent-blue);">+{{ challenge.bonus_xp }} XP</div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Daily Bonus</div>
+        </div>
+      </div>
+
+      <a href="/dashboard" class="btn btn-primary" style="padding: 0.85rem 2rem;">Return to Dashboard</a>
+    </div>
+  {% else %}
+    <!-- Active Daily Game Header -->
+    <div class="game-header">
+      <div>
+        <div style="font-size: 0.82rem; font-weight: 700; color: var(--accent-amber); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem;">
+          ⚡ {{ challenge.title }}
+        </div>
+        <div style="font-size: 0.95rem; font-weight: 600;" id="qCounter">
+          Question 1 of 5
+        </div>
+      </div>
+
+      <div class="timer-pill" id="timerPill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span id="timerText">00:40</span>
+      </div>
+    </div>
+
+    <div class="progress-bar-container" style="height: 6px; margin-bottom: 1.5rem;">
+      <div class="progress-bar-fill" id="gameProgressFill" style="width: 0%; background: linear-gradient(90deg, var(--accent-amber), var(--accent-rose));"></div>
+    </div>
+
+    <!-- Question Card -->
+    <div class="game-card" id="gameCard">
+      <h2 class="question-text" id="questionText">
+        Loading today's aptitude challenge...
+      </h2>
+
+      <div class="options-list" id="optionsContainer"></div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+        <a href="/dashboard" class="btn btn-ghost" style="font-size: 0.88rem;">Quit</a>
+        <button class="btn btn-primary" id="submitAnswerBtn" disabled style="padding: 0.75rem 2rem; background: var(--accent-amber); box-shadow: 0 2px 10px rgba(255, 149, 0, 0.3);">
+          Submit Answer
+        </button>
+        <button class="btn btn-primary" id="nextQuestionBtn" style="display: none; padding: 0.75rem 2rem;">
+          Next Question →
+        </button>
+      </div>
+
+      <div id="solutionContainer" style="display: none;"></div>
+    </div>
+
+    <!-- Daily Complete Modal -->
+    <div class="modal-overlay" id="levelCompleteModal">
+      <div class="modal-content">
+        <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">⚡</div>
+        <div class="badge badge-amber" style="margin-bottom: 0.75rem;">Daily Blitz Complete!</div>
+        <h2 style="font-size: 1.85rem; font-weight: 800; margin-bottom: 0.5rem;">Streak Secured!</h2>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.75rem;">
+          You earned <strong>+500 Bonus XP</strong> and pushed your practice streak forward!
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem;">
+          <div class="stat-box">
+            <div class="stat-value" id="modalAccuracy">0%</div>
+            <div class="stat-label">Accuracy</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" style="color: var(--accent-amber);">+500 XP</div>
+            <div class="stat-label">Blitz Bonus</div>
+          </div>
+        </div>
+
+        <a href="/dashboard" class="btn btn-primary" style="width: 100%; padding: 0.85rem;">
+          Back to Dashboard
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if not is_completed %}
+<script src="/static/js/game.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    new GameEngine({
+      levelId: 0,
+      collectionSlug: "daily",
+      isDaily: true
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

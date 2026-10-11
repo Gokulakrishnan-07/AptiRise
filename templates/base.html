@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AptiRise — Master Aptitude One Level at a Time{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Interactive Apple-inspired aptitude practice game with level progression, streaks, XP rewards, and AI assistance.{% endblock %}">
+  <link rel="stylesheet" href="/static/css/app.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <!-- Navigation Header -->
+  <header class="navbar" id="mainNavbar">
+    <a href="/" class="nav-brand" id="navBrandLink">
+      <div class="brand-icon">▲</div>
+      <span>AptiRise</span>
+    </a>
+
+    <nav class="nav-links" id="mainNavLinks">
+      {% if user or current_user %}
+        <a href="/dashboard" class="nav-item {% if request.url.path == '/dashboard' %}active{% endif %}" id="navDashboard">Dashboard</a>
+        <a href="/daily-challenge" class="nav-item {% if request.url.path == '/daily-challenge' %}active{% endif %}" id="navDaily">Daily Blitz</a>
+        <a href="/achievements" class="nav-item {% if request.url.path == '/achievements' %}active{% endif %}" id="navAchievements">Achievements</a>
+        <a href="/review-mistakes" class="nav-item {% if request.url.path == '/review-mistakes' %}active{% endif %}" id="navReview">Review</a>
+        {% if (user and user.role == 'admin') or (current_user and current_user.role == 'admin') %}
+          <a href="/admin" class="nav-item badge badge-blue" style="text-transform:none;" id="navAdmin">Admin</a>
+        {% endif %}
+      {% endif %}
+    </nav>
+
+    <div class="nav-actions">
+      <!-- Sound Toggle -->
+      <button class="btn btn-secondary btn-icon" id="soundToggleBtn" aria-label="Toggle Sound Effects" title="Toggle Sound">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+      </button>
+
+      <!-- Theme Switcher -->
+      <button class="btn btn-secondary btn-icon" id="themeToggleBtn" aria-label="Toggle Dark/Light Mode" title="Toggle Theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle></svg>
+      </button>
+
+      {% if user or current_user %}
+        <a href="/profile" class="btn btn-secondary" id="navProfileBtn">
+          {% set u = user if user else current_user %}
+          <span>{{ u.full_name or u.username }}</span>
+          <span class="badge badge-blue">Lvl {{ u.current_level }}</span>
+        </a>
+        <a href="/logout" class="btn btn-ghost" id="navLogoutBtn">Sign Out</a>
+      {% else %}
+        <a href="/login" class="btn btn-ghost" id="navLoginBtn">Sign In</a>
+        <a href="/register" class="btn btn-primary" id="navRegisterBtn">Get Started</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Global Footer -->
+  <footer style="margin-top: auto; padding: 2rem 1.5rem; text-align: center; border-top: 1px solid var(--border-subtle); color: var(--text-tertiary); font-size: 0.85rem;">
+    <div style="max-width: 1140px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap: 1rem;">
+      <div>© 2026 AptiRise Inc. All rights reserved. Precision Aptitude Learning.</div>
+      <div style="display: flex; gap: 1.5rem;">
+        <a href="/dashboard" class="btn-ghost" style="font-size: 0.82rem;">Practice</a>
+        <a href="/daily-challenge" class="btn-ghost" style="font-size: 0.82rem;">Daily Blitz</a>
+        <a href="/achievements" class="btn-ghost" style="font-size: 0.82rem;">Achievements</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/js/sound.js"></script>
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

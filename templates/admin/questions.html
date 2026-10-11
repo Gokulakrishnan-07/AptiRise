@@ -1,0 +1,281 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Question Bank — AptiRise Admin{% endblock %}
+
+{% block content %}
+<div>
+  <!-- Header & Actions -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.25rem;">
+        Question Management
+      </h1>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">
+        Browse, create, duplicate, and configure aptitude questions across levels.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <button class="btn btn-primary" onclick="openCreateModal()">
+        + Create New Question
+      </button>
+      <a href="/admin/pdf/import" class="btn btn-secondary">
+        📄 Import from PDF
+      </a>
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <div class="card" style="padding: 1.25rem; margin-bottom: 1.75rem;">
+    <form method="GET" action="/admin/questions" style="display: grid; grid-template-columns: 2fr 1.2fr 1fr auto; gap: 1rem; align-items: center;">
+      <input type="text" name="search" class="form-input" placeholder="Search questions by keyword..." value="{{ search }}">
+
+      <select name="collection_id" class="form-select">
+        <option value="">All Collections</option>
+        {% for col in collections %}
+          <option value="{{ col.id }}" {% if collection_id == col.id %}selected{% endif %}>{{ col.name }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="difficulty" class="form-select">
+        <option value="">All Difficulties</option>
+        <option value="Beginner" {% if difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
+        <option value="Easy" {% if difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+        <option value="Intermediate" {% if difficulty == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+        <option value="Advanced" {% if difficulty == 'Advanced' %}selected{% endif %}>Advanced</option>
+        <option value="Expert" {% if difficulty == 'Expert' %}selected{% endif %}>Expert</option>
+      </select>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        {% if search or collection_id or difficulty %}
+          <a href="/admin/questions" class="btn btn-ghost">Reset</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Questions Table -->
+  <div class="data-table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width: 60px;">ID</th>
+          <th>Question Text</th>
+          <th>Topic</th>
+          <th>Level</th>
+          <th>Difficulty</th>
+          <th>Source</th>
+          <th style="text-align: right; width: 180px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if not questions %}
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+              No questions found matching your filter criteria.
+            </td>
+          </tr>
+        {% else %}
+          {% for q in questions %}
+          <tr id="qRow-{{ q.id }}">
+            <td style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-tertiary);">#{{ q.id }}</td>
+            <td style="font-weight: 600; max-width: 420px;">
+              <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ q.question_text }}
+              </div>
+            </td>
+            <td>
+              <span class="badge badge-blue">{{ q.collection.name if q.collection else '—' }}</span>
+            </td>
+            <td>Lvl {{ q.level.level_number if q.level else 1 }}</td>
+            <td>
+              <span class="badge {% if q.difficulty == 'Beginner' or q.difficulty == 'Easy' %}badge-emerald{% elif q.difficulty == 'Intermediate' %}badge-amber{% else %}badge-rose{% endif %}">
+                {{ q.difficulty }}
+              </span>
+            </td>
+            <td style="font-size: 0.82rem; color: var(--text-tertiary);">{{ q.source }}</td>
+            <td style="text-align: right;">
+              <button class="btn btn-ghost" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;" onclick="duplicateQuestion({{ q.id }})" title="Duplicate">
+                Copy
+              </button>
+              <button class="btn btn-ghost" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; color: var(--accent-rose);" onclick="deleteQuestion({{ q.id }})" title="Delete">
+                Delete
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  {% if total_pages > 1 %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; font-size: 0.88rem; color: var(--text-secondary);">
+      <div>Showing page {{ page }} of {{ total_pages }} ({{ total_count }} total questions)</div>
+      <div style="display: flex; gap: 0.5rem;">
+        {% if page > 1 %}
+          <a href="?page={{ page - 1 }}&search={{ search }}&collection_id={{ collection_id or '' }}&difficulty={{ difficulty }}" class="btn btn-secondary">Previous</a>
+        {% endif %}
+        {% if page < total_pages %}
+          <a href="?page={{ page + 1 }}&search={{ search }}&collection_id={{ collection_id or '' }}&difficulty={{ difficulty }}" class="btn btn-secondary">Next</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Modal: Create Question -->
+<div class="modal-overlay" id="createQuestionModal">
+  <div class="modal-content" style="max-width: 650px; text-align: left;">
+    <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1.25rem;">Create New Aptitude Question</h2>
+
+    <form id="createQuestionForm">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Collection</label>
+          <select id="modalCollectionId" class="form-select" required>
+            {% for col in collections %}
+              <option value="{{ col.id }}">{{ col.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Difficulty & Level</label>
+          <select id="modalDifficulty" class="form-select" required>
+            <option value="Beginner">Level 1 — Beginner</option>
+            <option value="Easy">Level 2 — Easy</option>
+            <option value="Intermediate" selected>Level 3 — Intermediate</option>
+            <option value="Advanced">Level 4 — Advanced</option>
+            <option value="Expert">Level 5 — Expert</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Question Text</label>
+        <textarea id="modalQuestionText" class="form-textarea" rows="3" required placeholder="Enter the complete question problem..."></textarea>
+      </div>
+
+      <!-- 4 Options with Correct Answer Radio -->
+      <div style="margin-bottom: 1rem;">
+        <label class="form-label">Options (Select Correct Radio)</label>
+        <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <input type="radio" name="modalCorrectOpt" value="A" checked>
+            <span style="font-weight: 700;">A:</span>
+            <input type="text" id="modalOptA" class="form-input" required placeholder="Option A text">
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <input type="radio" name="modalCorrectOpt" value="B">
+            <span style="font-weight: 700;">B:</span>
+            <input type="text" id="modalOptB" class="form-input" required placeholder="Option B text">
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <input type="radio" name="modalCorrectOpt" value="C">
+            <span style="font-weight: 700;">C:</span>
+            <input type="text" id="modalOptC" class="form-input" required placeholder="Option C text">
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <input type="radio" name="modalCorrectOpt" value="D">
+            <span style="font-weight: 700;">D:</span>
+            <input type="text" id="modalOptD" class="form-input" required placeholder="Option D text">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Step-by-step Explanation</label>
+        <textarea id="modalExplanation" class="form-textarea" rows="2" placeholder="Explain the concept and solution..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Formula / Shortcut</label>
+        <input type="text" id="modalShortcut" class="form-input" placeholder="e.g. Formula: SI = (P*R*T)/100">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save & Publish Question</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function openCreateModal() {
+    document.getElementById("createQuestionModal").classList.add("active");
+  }
+
+  function closeCreateModal() {
+    document.getElementById("createQuestionModal").classList.remove("active");
+  }
+
+  document.getElementById("createQuestionForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const colId = parseInt(document.getElementById("modalCollectionId").value);
+    const diff = document.getElementById("modalDifficulty").value;
+    const diffMap = { "Beginner": 1, "Easy": 2, "Intermediate": 3, "Advanced": 4, "Expert": 5 };
+    const levelNumber = diffMap[diff] || 3;
+
+    const qText = document.getElementById("modalQuestionText").value.trim();
+    const correctOpt = document.querySelector('input[name="modalCorrectOpt"]:checked').value;
+    const optA = document.getElementById("modalOptA").value.trim();
+    const optB = document.getElementById("modalOptB").value.trim();
+    const optC = document.getElementById("modalOptC").value.trim();
+    const optD = document.getElementById("modalOptD").value.trim();
+    const exp = document.getElementById("modalExplanation").value.trim();
+    const shortcut = document.getElementById("modalShortcut").value.trim();
+
+    // Fetch matching level id for collection
+    const options = [
+      { option_label: "A", option_text: optA, is_correct: correctOpt === "A" },
+      { option_label: "B", option_text: optB, is_correct: correctOpt === "B" },
+      { option_label: "C", option_text: optC, is_correct: correctOpt === "C" },
+      { option_label: "D", option_text: optD, is_correct: correctOpt === "D" }
+    ];
+
+    try {
+      const resp = await fetch("/admin/api/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          collection_id: colId,
+          level_id: levelNumber, // backend maps to level
+          question_text: qText,
+          explanation: exp,
+          shortcut: shortcut,
+          difficulty: diff,
+          time_limit: 45,
+          xp_value: 100,
+          options: options
+        })
+      });
+
+      if (resp.ok) {
+        window.location.reload();
+      }
+    } catch (err) {
+      alert("Error saving question");
+    }
+  });
+
+  async function duplicateQuestion(id) {
+    if (!confirm("Duplicate question #" + id + "?")) return;
+    const resp = await fetch(`/admin/api/questions/${id}/duplicate`, { method: "POST" });
+    if (resp.ok) window.location.reload();
+  }
+
+  async function deleteQuestion(id) {
+    if (!confirm("Are you sure you want to delete question #" + id + "?")) return;
+    const resp = await fetch(`/admin/api/questions/${id}`, { method: "DELETE" });
+    if (resp.ok) {
+      const row = document.getElementById(`qRow-${id}`);
+      if (row) row.remove();
+    }
+  }
+</script>
+{% endblock %}

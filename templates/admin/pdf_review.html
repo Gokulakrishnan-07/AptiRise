@@ -1,0 +1,230 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Review Extracted Questions — AptiRise Admin{% endblock %}
+
+{% block content %}
+<div>
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <a href="/admin/pdf/import" style="font-size: 0.88rem; font-weight: 600; color: var(--accent-blue); display: inline-flex; align-items: center; gap: 0.35rem; margin-bottom: 0.5rem;">
+        ← Back to PDF Imports
+      </a>
+      <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.25rem;">
+        Review Extracted Questions
+      </h1>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">
+        File: <strong>{{ pdf_import.filename }}</strong> • <strong>{{ questions | length }}</strong> questions analyzed by AI
+      </p>
+    </div>
+
+    <!-- Bulk Action Controls -->
+    <div style="display: flex; gap: 0.75rem;">
+      <button class="btn btn-secondary" onclick="rejectAllQuestions()" style="color: var(--accent-rose);">
+        Reject All
+      </button>
+      <button class="btn btn-primary" onclick="openApproveAllModal()" id="approveAllBtn">
+        Approve & Publish Selected ({{ questions | length }}) →
+      </button>
+    </div>
+  </div>
+
+  <!-- Review Table -->
+  <div class="data-table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width: 40px;">#</th>
+          <th>Question & Options</th>
+          <th>AI Topic</th>
+          <th>Level</th>
+          <th style="width: 80px;">Answer</th>
+          <th style="width: 110px;">AI Conf.</th>
+          <th>Status</th>
+          <th style="text-align: right; width: 140px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="reviewTableBody">
+        {% if not questions %}
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+              No questions found in this import batch.
+            </td>
+          </tr>
+        {% else %}
+          {% for q in questions %}
+          <tr id="reviewRow-{{ q.id }}" class="review-row" data-id="{{ q.id }}">
+            <td style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-tertiary);">{{ loop.index }}</td>
+
+            <!-- Question and Options preview -->
+            <td style="max-width: 380px;">
+              <div style="font-weight: 600; margin-bottom: 0.4rem; line-height: 1.4;">
+                {{ q.question_text }}
+              </div>
+              <div style="font-size: 0.82rem; color: var(--text-secondary); display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem;">
+                <div><strong>A:</strong> {{ q.option_a }}</div>
+                <div><strong>B:</strong> {{ q.option_b }}</div>
+                <div><strong>C:</strong> {{ q.option_c }}</div>
+                <div><strong>D:</strong> {{ q.option_d }}</div>
+              </div>
+              {% if q.is_duplicate %}
+                <div class="badge badge-amber" style="margin-top: 0.5rem;">
+                  ⚠️ Possible duplicate detected (Existing #{{ q.duplicate_question_id }})
+                </div>
+              {% endif %}
+            </td>
+
+            <!-- Topic Selection -->
+            <td>
+              <select class="form-select q-topic-select" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+                {% for col in collections %}
+                  <option value="{{ col.id }}" {% if q.final_collection_id == col.id %}selected{% endif %}>
+                    {{ col.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </td>
+
+            <!-- Difficulty / Level Selection -->
+            <td>
+              <select class="form-select q-level-select" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+                <option value="1" {% if q.detected_difficulty == 'Beginner' %}selected{% endif %}>Lvl 1 (Beginner)</option>
+                <option value="2" {% if q.detected_difficulty == 'Easy' %}selected{% endif %}>Lvl 2 (Easy)</option>
+                <option value="3" {% if q.detected_difficulty == 'Intermediate' or not q.detected_difficulty %}selected{% endif %}>Lvl 3 (Interm.)</option>
+                <option value="4" {% if q.detected_difficulty == 'Advanced' %}selected{% endif %}>Lvl 4 (Adv.)</option>
+                <option value="5" {% if q.detected_difficulty == 'Expert' %}selected{% endif %}>Lvl 5 (Expert)</option>
+              </select>
+            </td>
+
+            <!-- Correct Answer -->
+            <td style="text-align: center;">
+              <select class="form-select q-answer-select" style="font-size: 0.85rem; padding: 0.4rem; text-align: center; font-weight: 700;">
+                <option value="A" {% if q.detected_answer == 'A' %}selected{% endif %}>A</option>
+                <option value="B" {% if q.detected_answer == 'B' %}selected{% endif %}>B</option>
+                <option value="C" {% if q.detected_answer == 'C' %}selected{% endif %}>C</option>
+                <option value="D" {% if q.detected_answer == 'D' %}selected{% endif %}>D</option>
+              </select>
+            </td>
+
+            <!-- AI Confidence -->
+            <td>
+              <span class="badge {% if q.ai_confidence >= 0.85 %}badge-emerald{% elif q.ai_confidence >= 0.70 %}badge-blue{% else %}badge-amber{% endif %}">
+                {{ (q.ai_confidence * 100) | round | int }}%
+              </span>
+            </td>
+
+            <!-- Status -->
+            <td>
+              <span class="badge {% if q.status == 'approved' %}badge-emerald{% elif q.status == 'duplicate' %}badge-amber{% else %}badge-blue{% endif %}" id="statusBadge-{{ q.id }}">
+                {{ q.status }}
+              </span>
+            </td>
+
+            <!-- Row Actions -->
+            <td style="text-align: right;">
+              <button class="btn btn-ghost" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; color: var(--accent-rose);" onclick="removeRow({{ q.id }})" title="Remove">
+                Reject
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal: Approve All Warning -->
+<div class="modal-overlay" id="approveAllModal">
+  <div class="modal-content" style="max-width: 500px;">
+    <div style="font-size: 3rem; margin-bottom: 0.5rem;">⚠️</div>
+    <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">Confirm Bulk Publishing</h2>
+    <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.75rem;">
+      You are about to publish all reviewed questions to the live database. Once approved, these questions will immediately become playable by users across the levels.
+    </p>
+
+    <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+      <button class="btn btn-secondary" onclick="closeApproveAllModal()">Cancel & Keep Reviewing</button>
+      <button class="btn btn-primary" onclick="confirmApproveAll()" id="confirmApproveBtn">
+        Confirm & Publish Now
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function openApproveAllModal() {
+    document.getElementById("approveAllModal").classList.add("active");
+  }
+
+  function closeApproveAllModal() {
+    document.getElementById("approveAllModal").classList.remove("active");
+  }
+
+  function removeRow(id) {
+    const row = document.getElementById(`reviewRow-${id}`);
+    if (row) row.remove();
+  }
+
+  function rejectAllQuestions() {
+    if (!confirm("Are you sure you want to reject all extracted questions in this batch?")) return;
+    document.getElementById("reviewTableBody").innerHTML = `
+      <tr><td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-secondary);">All questions in this batch were rejected.</td></tr>
+    `;
+  }
+
+  async function confirmApproveAll() {
+    const rows = document.querySelectorAll(".review-row");
+    const questionsToApprove = [];
+
+    rows.forEach((row) => {
+      const qId = parseInt(row.dataset.id);
+      const colId = parseInt(row.querySelector(".q-topic-select").value);
+      const lvlNum = parseInt(row.querySelector(".q-level-select").value);
+      const ans = row.querySelector(".q-answer-select").value;
+
+      questionsToApprove.push({
+        id: qId,
+        question_text: row.querySelector("div[style*='font-weight: 600']").textContent.trim(),
+        option_a: "Option A",
+        option_b: "Option B",
+        option_c: "Option C",
+        option_d: "Option D",
+        detected_answer: ans,
+        collection_id: colId,
+        level_id: lvlNum,
+        difficulty: lvlNum === 1 ? "Beginner" : (lvlNum === 2 ? "Easy" : (lvlNum === 4 ? "Advanced" : (lvlNum === 5 ? "Expert" : "Intermediate")))
+      });
+    });
+
+    const approveBtn = document.getElementById("confirmApproveBtn");
+    approveBtn.disabled = true;
+    approveBtn.textContent = "Publishing to Game...";
+
+    try {
+      const resp = await fetch("/admin/api/pdf/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pdf_import_id: {{ pdf_import.id }},
+          questions: questionsToApprove
+        })
+      });
+
+      if (resp.ok) {
+        window.location.href = "/admin/questions";
+      } else {
+        alert("Failed to publish questions. Please review.");
+        approveBtn.disabled = false;
+        closeApproveAllModal();
+      }
+    } catch (e) {
+      alert("Error approving questions.");
+      approveBtn.disabled = false;
+      closeApproveAllModal();
+    }
+  }
+</script>
+{% endblock %}

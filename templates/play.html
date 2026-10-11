@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Play {{ collection.name }} - Level {{ level.level_number }} — AptiRise{% endblock %}
+
+{% block content %}
+<div class="game-container">
+  <!-- Top Game Controls & Progress -->
+  <div class="game-header">
+    <div>
+      <div style="font-size: 0.82rem; font-weight: 700; color: var(--accent-blue); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem;">
+        {{ collection.name }} • Level {{ level.level_number }} {{ level.title }}
+      </div>
+      <div style="font-size: 0.95rem; font-weight: 600;" id="qCounter">
+        Loading Questions...
+      </div>
+    </div>
+
+    <!-- Timer Display -->
+    <div class="timer-pill" id="timerPill">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      <span id="timerText">00:45</span>
+    </div>
+  </div>
+
+  <!-- Progress Bar Container -->
+  <div class="progress-bar-container" style="height: 6px; margin-bottom: 1.5rem;">
+    <div class="progress-bar-fill" id="gameProgressFill" style="width: 0%;"></div>
+  </div>
+
+  <!-- Interactive Question Card -->
+  <div class="game-card" id="gameCard">
+    <h2 class="question-text" id="questionText">
+      Loading your aptitude question...
+    </h2>
+
+    <div class="options-list" id="optionsContainer">
+      <!-- Options dynamically rendered by GameEngine -->
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+      <a href="/collections/{{ collection.slug }}" class="btn btn-ghost" style="font-size: 0.88rem;">Quit Level</a>
+      <button class="btn btn-primary" id="submitAnswerBtn" disabled style="padding: 0.75rem 2rem;">
+        Submit Answer
+      </button>
+      <button class="btn btn-primary" id="nextQuestionBtn" style="display: none; padding: 0.75rem 2rem;">
+        Next Question →
+      </button>
+    </div>
+
+    <!-- Solution / Explanation Box -->
+    <div id="solutionContainer" style="display: none;"></div>
+  </div>
+</div>
+
+<!-- Level Complete Modal -->
+<div class="modal-overlay" id="levelCompleteModal">
+  <div class="modal-content">
+    <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎉</div>
+    <div id="perfectBadge" class="badge badge-emerald" style="display: none; margin-bottom: 0.75rem;">
+      ✨ Perfect Flawless Run!
+    </div>
+    <h2 style="font-size: 1.85rem; font-weight: 800; margin-bottom: 0.5rem;">Level Completed!</h2>
+    <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.75rem;">
+      Outstanding practice. Here is your session summary:
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.75rem; text-align: center;">
+      <div class="stat-box">
+        <div class="stat-value" id="modalAccuracy">0%</div>
+        <div class="stat-label">Accuracy</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="modalXpEarned" style="color: var(--accent-blue);">+0 XP</div>
+        <div class="stat-label">Total XP</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="modalScore">0</div>
+        <div class="stat-label">Score</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="modalTime">0m</div>
+        <div class="stat-label">Time Taken</div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 1.5rem; font-size: 0.9rem; font-weight: 600; margin-bottom: 2rem;">
+      <span style="color: var(--accent-emerald);">✓ Correct: <strong id="modalCorrect">0</strong></span>
+      <span style="color: var(--accent-rose);">✗ Wrong: <strong id="modalWrong">0</strong></span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <a href="/collections/{{ collection.slug }}" class="btn btn-primary" style="width: 100%; padding: 0.85rem;">
+        Continue Progression →
+      </a>
+      <a href="/review-mistakes" class="btn btn-secondary" style="width: 100%; padding: 0.85rem;">
+        Review Mistakes
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Fullscreen Level Up Celebratory Animation -->
+<div class="modal-overlay" id="levelUpModal" style="background: rgba(0, 0, 0, 0.85);">
+  <div class="modal-content" style="background: linear-gradient(135deg, rgba(30, 30, 45, 0.95), rgba(15, 15, 25, 0.95)); border: 1.5px solid var(--accent-blue); box-shadow: var(--shadow-glow);">
+    <div style="font-size: 3.5rem; margin-bottom: 0.5rem; animation: pop-correct 0.6s ease;">⭐</div>
+    <div class="badge badge-amber" style="margin-bottom: 0.75rem;">LEVEL UP!</div>
+    <h1 style="font-size: 2.8rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.5rem;" id="newLevelNumber">
+      Level 2
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 1.5rem;">
+      Your aptitude skills are reaching new heights!
+    </p>
+    <div class="badge badge-blue" style="font-size: 1rem; padding: 0.5rem 1.25rem;">
+      +500 Bonus XP Awarded
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/game.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    new GameEngine({
+      levelId: {{ level.id }},
+      collectionSlug: "{{ collection.slug }}",
+      isDaily: false
+    });
+  });
+</script>
+{% endblock %}

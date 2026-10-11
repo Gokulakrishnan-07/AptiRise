@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Achievements — AptiRise{% endblock %}
+
+{% block content %}
+<div>
+  <!-- Header -->
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.4rem;">
+      Achievements & Badges
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 1.05rem;">
+      Unlock badges and claim bonus XP by hitting major mastery milestones.
+    </p>
+  </div>
+
+  <!-- Summary Card -->
+  <div class="card" style="margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+    <div style="display: flex; align-items: center; gap: 1.5rem;">
+      <div style="width: 54px; height: 54px; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--accent-amber), var(--accent-rose)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 14px rgba(255, 149, 0, 0.35);">
+        🏆
+      </div>
+      <div>
+        <div style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.2rem;">
+          {{ unlocked_count }} of {{ total_count }} Unlocked
+        </div>
+        <div style="font-size: 0.88rem; color: var(--text-secondary);">
+          Total XP earned from achievements: <strong style="color: var(--accent-blue);">+{{ total_xp_from_achievements }} XP</strong>
+        </div>
+      </div>
+    </div>
+
+    <div style="min-width: 220px;">
+      {% set pct = (unlocked_count / total_count * 100) if total_count > 0 else 0 %}
+      <div class="progress-bar-container" style="height: 8px;">
+        <div class="progress-bar-fill" style="width: {{ pct }}%; background: linear-gradient(90deg, var(--accent-amber), var(--accent-blue));"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+    {% for ach in achievements %}
+    <div class="card" style="position: relative; overflow: hidden; {% if not ach.is_unlocked %}opacity: 0.55; filter: grayscale(0.5);{% endif %}">
+      {% if ach.is_unlocked %}
+        <div style="position: absolute; top: 1rem; right: 1rem;">
+          <span class="badge badge-emerald">Unlocked</span>
+        </div>
+      {% else %}
+        <div style="position: absolute; top: 1rem; right: 1rem;">
+          <span class="badge" style="background: var(--bg-tertiary); color: var(--text-tertiary);">Locked</span>
+        </div>
+      {% endif %}
+
+      <div style="font-size: 2.2rem; margin-bottom: 0.75rem;">
+        {% if ach.icon == 'target' %}🎯
+        {% elif ach.icon == 'flame' %}🔥
+        {% elif ach.icon == 'zap' %}⚡
+        {% elif ach.icon == 'award' %}💯
+        {% elif ach.icon == 'crown' %}👑
+        {% elif ach.icon == 'star' %}⭐
+        {% elif ach.icon == 'shield' %}🛡️
+        {% else %}🏆
+        {% endif %}
+      </div>
+
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem;">{{ ach.title }}</h3>
+      <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 1.25rem;">
+        {{ ach.description }}
+      </p>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem; font-size: 0.82rem;">
+        <span style="font-weight: 700; color: var(--accent-blue);">+{{ ach.xp_reward }} XP</span>
+        {% if ach.is_unlocked and ach.unlocked_at %}
+          <span style="color: var(--text-tertiary);">{{ ach.unlocked_at.strftime('%b %d, %Y') }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

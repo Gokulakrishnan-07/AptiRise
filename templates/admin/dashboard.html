@@ -1,0 +1,115 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard — AptiRise{% endblock %}
+
+{% block content %}
+<div>
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.25rem;">
+        Analytics & Operations
+      </h1>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">
+        System overview, content pipeline, and platform learning metrics
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="/admin/pdf/import" class="btn btn-primary" id="adminUploadPdfBtn">
+        📄 Import Questions from PDF
+      </a>
+      <a href="/admin/questions" class="btn btn-secondary">
+        + Add Question Manually
+      </a>
+    </div>
+  </div>
+
+  <!-- Key Metrics 7-box grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2.5rem;">
+    <div class="stat-box">
+      <div class="stat-value">{{ total_users }}</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" style="color: var(--accent-emerald);">{{ active_users }}</div>
+      <div class="stat-label">Active (7d)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value">{{ total_questions }}</div>
+      <div class="stat-label">Questions</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value">{{ total_collections }}</div>
+      <div class="stat-label">Collections</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" style="color: var(--accent-blue);">+{{ questions_today }}</div>
+      <div class="stat-label">Added Today</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" style="color: var(--accent-purple); font-size: 1.2rem;">{{ most_practiced_topic }}</div>
+      <div class="stat-label">Top Topic</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value">{{ avg_accuracy }}%</div>
+      <div class="stat-label">Avg Accuracy</div>
+    </div>
+  </div>
+
+  <!-- Charts & Recent Logs Grid -->
+  <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem; align-items: start;">
+    <!-- Chart: Question Distribution Across Collections -->
+    <div class="card">
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">
+        Question Distribution by Topic
+      </h3>
+      {% if not chart_labels %}
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">No question distributions found.</p>
+      {% else %}
+        <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+          {% for label in chart_labels %}
+          {% set count = chart_data[loop.index0] %}
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">
+              <span>{{ label }}</span>
+              <span>{{ count }} questions</span>
+            </div>
+            <div class="progress-bar-container" style="height: 8px;">
+              {% set max_count = chart_data | max if chart_data else 1 %}
+              {% set pct = (count / max_count * 100) if max_count > 0 else 0 %}
+              <div class="progress-bar-fill" style="width: {{ pct }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Quick Operations & Recent Audit Logs -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700;">Recent Audit Logs</h3>
+        <a href="/admin/audit-logs" style="font-size: 0.82rem; color: var(--accent-blue); font-weight: 600;">View All →</a>
+      </div>
+
+      {% if not recent_logs %}
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">No recent admin actions.</p>
+      {% else %}
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          {% for log in recent_logs %}
+          <div style="padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); background: var(--bg-tertiary); font-size: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 0.2rem;">
+              <span>{{ log.action }}</span>
+              <span style="color: var(--text-tertiary); font-weight: 400; font-size: 0.78rem;">{{ log.created_at.strftime('%H:%M • %b %d') }}</span>
+            </div>
+            <div style="color: var(--text-secondary); font-size: 0.8rem;">
+              {{ log.details or (log.target_type ~ ' #' ~ log.target_id) }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

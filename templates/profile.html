@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile — AptiRise{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.35rem;">
+      Profile & Preferences
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 1.05rem;">
+      Manage your account details, game sound preferences, and review your mastery record.
+    </p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 2rem; align-items: flex-start;">
+    <!-- Left Column: User Card & Preferences Form -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="card" style="text-align: center;">
+        <div style="width: 80px; height: 80px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo)); color: #fff; font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; box-shadow: 0 4px 16px rgba(0, 113, 227, 0.35);">
+          {{ (user.full_name or user.username)[0] | upper }}
+        </div>
+        <h2 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 0.2rem;">{{ user.full_name or user.username }}</h2>
+        <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1rem;">{{ user.email }}</div>
+        <div class="badge badge-blue">Global Level {{ level_num }}</div>
+      </div>
+
+      <!-- Settings / Preferences Form -->
+      <div class="card">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">Preferences</h3>
+        <form id="preferencesForm">
+          <div class="form-group">
+            <label class="form-label" for="displayNameInput">Display Name</label>
+            <input type="text" id="displayNameInput" class="form-input" value="{{ user.full_name or user.username }}">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Sound Effects</label>
+            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+              <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; cursor: pointer;">
+                <input type="radio" name="soundPref" value="true" {% if user.sound_enabled %}checked{% endif %}>
+                Sound ON
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; cursor: pointer;">
+                <input type="radio" name="soundPref" value="false" {% if not user.sound_enabled %}checked{% endif %}>
+                Sound OFF
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="themeSelect">Theme Mode</label>
+            <select id="themeSelect" class="form-select">
+              <option value="dark" {% if user.theme_preference == 'dark' %}selected{% endif %}>Dark Mode (Default)</option>
+              <option value="light" {% if user.theme_preference == 'light' %}selected{% endif %}>Light Mode</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" id="saveProfileBtn">
+            Save Preferences
+          </button>
+          <div id="saveStatus" style="font-size: 0.85rem; text-align: center; margin-top: 0.75rem; color: var(--accent-emerald); display: none;">
+            ✓ Preferences saved successfully!
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Stats & Topic Breakdown -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="card">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">Lifetime Statistics</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+          <div class="stat-box">
+            <div class="stat-value">💎 {{ user.total_xp }}</div>
+            <div class="stat-label">Total XP</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" style="color: var(--accent-amber);">🔥 {{ user.current_streak }}</div>
+            <div class="stat-label">Current Streak</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">🏆 {{ achievements_count }}</div>
+            <div class="stat-label">Achievements</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">{{ total_attempts }}</div>
+            <div class="stat-label">Attempts</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">{{ correct_attempts }}</div>
+            <div class="stat-label">Correct</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">{{ accuracy }}%</div>
+            <div class="stat-label">Accuracy</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topic Progress Breakdown -->
+      <div class="card">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">Topic Mastery Breakdown</h3>
+        {% if not topics %}
+          <p style="font-size: 0.88rem; color: var(--text-secondary);">Start practicing topics from the dashboard to see your breakdown.</p>
+        {% else %}
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for t in topics %}
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 600; margin-bottom: 0.35rem;">
+                <a href="/collections/{{ t.slug }}" style="color: var(--text-primary); text-decoration: underline;">{{ t.name }}</a>
+                <span>Level {{ t.current_level }} / 5 • {{ t.completion }}%</span>
+              </div>
+              <div class="progress-bar-container" style="height: 6px;">
+                <div class="progress-bar-fill" style="width: {{ t.completion }}%;"></div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById("preferencesForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fullName = document.getElementById("displayNameInput").value;
+    const soundVal = document.querySelector('input[name="soundPref"]:checked').value === "true";
+    const themeVal = document.getElementById("themeSelect").value;
+
+    const resp = await fetch("/api/profile/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        full_name: fullName,
+        sound_enabled: soundVal,
+        theme_preference: themeVal
+      })
+    });
+
+    if (resp.ok) {
+      if (window.soundEngine) {
+        window.soundEngine.enabled = soundVal;
+        localStorage.setItem("aptirise_sound", soundVal ? "true" : "false");
+      }
+      document.documentElement.setAttribute("data-theme", themeVal);
+      localStorage.setItem("aptirise_theme", themeVal);
+
+      const statusEl = document.getElementById("saveStatus");
+      statusEl.style.display = "block";
+      setTimeout(() => statusEl.style.display = "none", 3000);
+    }
+  });
+</script>
+{% endblock %}

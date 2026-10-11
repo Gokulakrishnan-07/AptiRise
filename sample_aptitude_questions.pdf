@@ -1,0 +1,56 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 636 >>
+stream
+BT /F1 12 Tf 50 750 Td 15 TL
+(1. What is 30% of 1500?) '
+(A\) 350) '
+(B\) 450) '
+(C\) 500) '
+(D\) 550) '
+(Answer: B) '
+(Explanation: 30% of 1500 = 0.30 * 1500 = 450.) '
+() '
+(2. A man sells a bicycle for Rs 2400 making a profit of 20%. What was the cost price?) '
+(A\) Rs 1800) '
+(B\) Rs 2000) '
+(C\) Rs 2100) '
+(D\) Rs 2200) '
+(Answer: B) '
+(Explanation: 1.20 * CP = 2400, so CP = 2000.) '
+() '
+(3. A and B can do a work together in 8 days. A alone can do it in 12 days. How long will B take?) '
+(A\) 16 days) '
+(B\) 20 days) '
+(C\) 24 days) '
+(D\) 28 days) '
+(Answer: C) '
+(Explanation: 1/B = 1/8 - 1/12 = 1/24. B takes 24 days.) '
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000010 00000 n 
+0000000060 00000 n 
+0000000117 00000 n 
+0000000227 00000 n 
+0000000300 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+370
+%%EOF

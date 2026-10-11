@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title or "Error" }} — AptiRise{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 4rem auto; text-align: center;">
+  <div class="card" style="padding: 3.5rem 2rem;">
+    <div style="font-size: 3.5rem; margin-bottom: 0.75rem;">
+      {% if status_code == 404 %}🔍{% else %}⚠️{% endif %}
+    </div>
+    <div class="badge badge-rose" style="margin-bottom: 1rem;">Error {{ status_code }}</div>
+    <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.5rem;">
+      {{ title or "Something went wrong" }}
+    </h1>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1rem; line-height: 1.5;">
+      {{ message or "We encountered an unexpected situation. Please try returning to the dashboard." }}
+    </p>
+
+    <div style="display: flex; justify-content: center; gap: 1rem;">
+      <a href="/dashboard" class="btn btn-primary">Return to Dashboard</a>
+      <a href="/" class="btn btn-secondary">Home</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

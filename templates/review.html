@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Review Mistakes — AptiRise{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto;">
+  <div style="margin-bottom: 2rem;">
+    <a href="/dashboard" style="font-size: 0.9rem; font-weight: 600; color: var(--accent-blue); display: inline-flex; align-items: center; gap: 0.35rem; margin-bottom: 0.75rem;">
+      ← Back to Dashboard
+    </a>
+    <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.35rem;">
+      Review Mistakes
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 1.05rem;">
+      Examine your incorrect attempts, internalize the shortcuts, and turn weak spots into strengths.
+    </p>
+  </div>
+
+  {% if not mistakes %}
+    <div class="card" style="text-align: center; padding: 4rem 2rem;">
+      <div style="font-size: 3rem; margin-bottom: 0.75rem;">🎉</div>
+      <h3 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem;">Zero Mistakes Recorded!</h3>
+      <p style="color: var(--text-secondary); max-width: 420px; margin: 0 auto 1.75rem;">
+        You haven't made any mistakes yet or all your recent attempts were flawless. Keep practicing!
+      </p>
+      <a href="/dashboard" class="btn btn-primary">Start a New Level</a>
+    </div>
+  {% else %}
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      {% for item in mistakes %}
+      <div class="card" style="border-left: 4px solid var(--accent-rose);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span class="badge badge-rose">{{ item.topic }}</span>
+          <span style="font-size: 0.8rem; color: var(--text-tertiary);">{{ item.attempt.created_at.strftime('%b %d, %Y') }}</span>
+        </div>
+
+        <h3 style="font-size: 1.15rem; font-weight: 600; line-height: 1.45; margin-bottom: 1.25rem;">
+          {{ item.question.question_text }}
+        </h3>
+
+        <!-- Answers Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+          <div style="padding: 0.85rem 1rem; border-radius: var(--radius-md); background: var(--accent-rose-light); border: 1px solid rgba(255, 59, 48, 0.2);">
+            <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--accent-rose); margin-bottom: 0.25rem;">
+              Your Answer
+            </div>
+            <div style="font-size: 0.95rem; font-weight: 600;">
+              Option {{ item.user_choice }} — {{ item.user_text }}
+            </div>
+          </div>
+
+          <div style="padding: 0.85rem 1rem; border-radius: var(--radius-md); background: var(--accent-emerald-light); border: 1px solid rgba(52, 199, 89, 0.2);">
+            <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.25rem;">
+              Correct Answer
+            </div>
+            <div style="font-size: 0.95rem; font-weight: 600;">
+              Option {{ item.correct_choice }} — {{ item.correct_text }}
+            </div>
+          </div>
+        </div>
+
+        {% if item.explanation %}
+          <div style="font-size: 0.92rem; color: var(--text-secondary); margin-bottom: 0.75rem; line-height: 1.45;">
+            <strong>Step-by-step Solution:</strong> {{ item.explanation }}
+          </div>
+        {% endif %}
+
+        {% if item.shortcut %}
+          <div style="margin-top: 0.75rem; padding: 0.85rem; border-radius: var(--radius-sm); background: var(--bg-tertiary); border: 1px solid var(--border-subtle);">
+            <div class="shortcut-badge">💡 Formula & Shortcut</div>
+            <div style="font-size: 0.9rem; font-weight: 500;">{{ item.shortcut }}</div>
+          </div>
+        {% endif %}
+
+        <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
+          {% if item.question.collection %}
+            <a href="/collections/{{ item.question.collection.slug }}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.45rem 1rem;">
+              Practice Topic Again →
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
